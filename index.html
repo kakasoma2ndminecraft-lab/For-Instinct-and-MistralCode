@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PICO — Specialty Coffee</title>
+  <meta name="description" content="PICO — 一杯に、本能を。スクロールとともに淹れる、没入型コーヒー体験。" />
+  <meta name="theme-color" content="#0e0805" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500&family=Zen+Old+Mincho:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="assets/img/PICO.png" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <header class="site-nav" id="siteNav" data-nav>
+    <a class="brand" href="#top" aria-label="PICO トップへ"><img src="assets/img/PICO-metal.png" alt="PICO" width="1400" height="788" /></a>
+    <nav>
+      <a href="#collection">Collection</a>
+      <a href="#story">Story</a>
+      <a href="mailto:hello@pico.coffee" class="muted">Contact</a>
+    </nav>
+  </header>
+
+  <!-- 1. OPENING / 2. SCROLL-SCRUBBED VIDEO -->
+  <section class="hero" id="top">
+    <div class="hero-stage" id="heroStage">
+      <div class="hero-pin">
+        <video
+          id="heroVideo"
+          class="hero-video"
+          src="assets/video/pico-hero.mp4"
+          poster="assets/video/pico-hero-poster.jpg"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+        <div class="hero-vignette" aria-hidden="true"></div>
+
+        <div class="hero-logo" id="heroLogo">
+          <img src="assets/img/PICO-metal.png" alt="PICO" draggable="false" width="1400" height="788" />
+        </div>
+
+        <div class="hero-scenes" id="heroScenes">
+          <p class="scene is-visible" data-from="0.00" data-to="0.20">一粒の、<em>本能</em>を知っている。</p>
+          <p class="scene" data-from="0.26" data-to="0.46">時間が、香りに変わっていく。</p>
+          <p class="scene" data-from="0.52" data-to="0.72">沈黙が、まちにまった一滴を。</p>
+          <p class="scene scene-end" data-from="0.78" data-to="1.01">滴がカップに落ちる — <em>今、淹れる。</em></p>
+        </div>
+
+        <div class="scroll-hint" id="scrollHint" aria-hidden="true">
+          <span class="scroll-hint__label">Scroll to Brew</span>
+          <span class="scroll-hint__line"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. COFFEE CAROUSEL -->
+  <section class="collection" id="collection">
+    <header class="section-head reveal">
+      <p class="eyebrow">The Collection</p>
+      <h2>産地が、<span class="numeral">4</span>つの物語。</h2>
+      <p class="lead">矢印をめくるたびに、別の土地の空気が流れ込む。</p>
+    </header>
+
+    <div class="carousel" id="carousel" aria-roledescription="carousel" aria-label="PICO products">
+      <button class="arrow arrow--prev" id="prevBtn" aria-label="前の商品">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 4 7 12l8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="carousel-stage">
+        <figure class="slot slot--prev" id="slotPrev" aria-hidden="true"><img src="assets/img/products/colombia.jpg" alt="" draggable="false" width="900" height="1200" /></figure>
+        <figure class="slot slot--current" id="slotCurrent"><img src="assets/img/products/brazil.jpg" alt="" draggable="false" width="900" height="1200" /></figure>
+        <figure class="slot slot--next" id="slotNext" aria-hidden="true"><img src="assets/img/products/sumatra.jpg" alt="" draggable="false" width="900" height="1200" /></figure>
+      </div>
+
+      <button class="arrow arrow--next" id="nextBtn" aria-label="次の商品">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m9 4 8 8-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="product-meta reveal" aria-live="polite">
+      <p class="eyebrow" id="productRoast">MEDIUM ROAST</p>
+      <h3 class="product-origin" id="productOrigin">BRAZIL</h3>
+      <p class="product-name" id="productName">SOL BRAZIL — 200g</p>
+      <p class="product-note" id="productNote">深い苦味が特徴。<br />ダークチョコ×ローストナッツ。</p>
+      <div class="product-cursor" id="productCursor">
+        <span>01</span><i>/</i><span>04</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. STORY -->
+  <section class="story" id="story">
+    <header class="section-head section-head--center reveal">
+      <p class="eyebrow">Our Story</p>
+      <h2>物語は、豆の中から。</h2>
+    </header>
+
+    <article class="chapter">
+      <div class="chapter-media" data-parallax="0.10">
+        <img src="assets/img/story/beans.jpg" alt="木のスコップに盛られた焙煎豆" loading="lazy" decoding="async" width="1200" height="1600" />
+        <span class="chapter-no numeral">01</span>
+      </div>
+      <div class="chapter-text reveal">
+        <p class="eyebrow">Origin — 種子</p>
+        <h3>農園の手を離れても、<br />豆は仕事を続ける。</h3>
+        <p>
+          標高と雨、昼夜の寒暖差。素朴な条件が、香りの設計図になる。
+          PICOのバイヤーは産地を歩き、一粒ごとに「本能の味」を選ぶ。
+        </p>
+      </div>
+    </article>
+
+    <article class="chapter chapter--flip">
+      <div class="chapter-media" data-parallax="0.10">
+        <img src="assets/img/story/extraction.jpg" alt="マシンから滴り落ちるエスプレッソ" loading="lazy" decoding="async" width="1920" height="1080" />
+        <span class="chapter-no numeral">02</span>
+      </div>
+      <div class="chapter-text reveal">
+        <p class="eyebrow">Extraction — 抽出</p>
+        <h3>湯は垂直に、<br />時間は水平に流れる。</h3>
+        <p>
+          92°C、たったの数十秒。豆の一生が液体へと書き換わる瞬間。
+          立ち上る蒸気を、どうか聞いてほしい。
+        </p>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="chapter-media" data-parallax="0.10">
+        <img src="assets/img/story/cup.jpg" alt="滴を受け止めたカップ" loading="lazy" decoding="async" width="1920" height="1080" />
+        <span class="chapter-no numeral">03</span>
+      </div>
+      <div class="chapter-text reveal">
+        <p class="eyebrow">The Moment — 一杯</p>
+        <h3>カップが満ちる時、<br />スクロールが、終わる。</h3>
+        <p>
+          ブラックの余韻は45秒。それはこのページと同じ長さ。
+          本能が支配する一杯を、PICOは静かに渡す。
+        </p>
+        <a class="cta" href="#collection">コレクションを観る</a>
+      </div>
+    </article>
+  </section>
+
+  <footer class="site-footer" id="footer">
+    <img class="footer-logo" src="assets/img/PICO-metal.png" alt="PICO" width="1400" height="788" />
+    <p class="footer-tag">一杯に、本能を。</p>
+    <nav class="footer-nav">
+      <a href="#collection">Collection</a>
+      <a href="#story">Story</a>
+      <a href="mailto:hello@pico.coffee">hello@pico.coffee</a>
+    </nav>
+    <p class="footer-fine">&copy; <span id="year"></span> PICO Specialty Coffee — Crafted with For Instinct &amp; Mistral Code</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
