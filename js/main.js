@@ -1,5 +1,5 @@
 /* PICO — immersive one-pager
-   1. opening (first video frame + logo)  2. scroll-scrubbed video
+   1. opening (first frame + logo)  2. scroll-scrubbed frame sequence
    3. product carousel (white-bg shots)   5. scroll story                    */
 
 (() => {
@@ -7,31 +7,30 @@
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ------------------------------------------------ 2. scroll-scrubbed video */
-  const video = document.getElementById("heroVideo");
+  /* ------------------------------------------------ 2. scroll-scrubbed frames */
+  /* iOS Safari decodes from the keyframe on every video.currentTime seek
+     (this source has a single keyframe), so scrubbing is driven by a
+     pre-extracted frame sequence instead. */
+  const FRAME_COUNT = 101;
+  const frameEl = document.getElementById("heroFrame");
   const stage = document.getElementById("heroStage");
   const logo = document.getElementById("heroLogo");
   const hint = document.getElementById("scrollHint");
-  const scenes = Array.from(document.querySelectorAll("#heroScenes .scene"));
   const bar = document.getElementById("progressBar");
   const nav = document.getElementById("siteNav");
 
-  let duration = 0;
-  const scrub = { target: 0, current: 0 };
+  const frame = { target: 0, current: 0, shown: 0 };
+  const loaded = new Set([0]);
+  const frameUrl = (i) => `assets/img/frames/f${String(i + 1).padStart(4, "0")}.webp`;
 
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   const lerp = (a, b, t) => a + (b - a) * t;
 
-  function primeMetadata() {
-    if (!video.duration) return;
-    duration = video.duration;
-    if (reduced) video.currentTime = duration - 0.05;
+  function showFrame(i) {
+    if (!loaded.has(i) || i === frame.shown) return;
+    frame.shown = i;
+    frameEl.src = frameUrl(i);
   }
-  video.addEventListener("loadedmetadata", primeMetadata);
-  primeMetadata();
-
-  const scenesAt = (p) =>
-    scenes.filter((s) => p >= parseFloat(s.dataset.from) && p < parseFloat(s.dataset.to));
 
   let lastY = 0;
   function updateNav(y) {
@@ -57,9 +56,9 @@
 
     bar.style.transform = `scaleX(${p})`;
 
-    if (duration && !reduced) scrub.target = p * (duration - 0.05);
+    if (!reduced) frame.target = p * (FRAME_COUNT - 1);
 
-    /* logo dissolves into the scene as brewing begins */
+    /* logo + tagline dissolve into the scene as brewing begins */
     const logoFade = 1 - clamp01((p - 0.06) / 0.16);
     const logoScale = 1 - clamp01(p / 1.2) * 0.18;
     logo.style.opacity = logoFade.toFixed(3);
@@ -67,16 +66,13 @@
 
     hint.style.opacity = p < 0.02 ? "" : "0";
 
-    const visible = scenesAt(p);
-    scenes.forEach((s) => s.classList.toggle("is-visible", visible.includes(s)));
   }
 
   function tick() {
-    if (!reduced && duration) {
-      scrub.current = lerp(scrub.current, scrub.target, 0.12);
-      if (Math.abs(video.currentTime - scrub.current) > 0.02) {
-        video.currentTime = scrub.current;
-      }
+    if (!reduced) {
+      frame.current = lerp(frame.current, frame.target, 0.12);
+      if (Math.abs(frame.target - frame.current) < 0.02) frame.current = frame.target;
+      showFrame(Math.round(frame.current));
     }
     requestAnimationFrame(tick);
   }
@@ -85,6 +81,31 @@
   window.addEventListener("resize", onScroll);
   requestAnimationFrame(tick);
   update();
+
+  /* warm the browser cache with the rest of the sequence, two at a time */
+  if (reduced) {
+    frameEl.src = frameUrl(FRAME_COUNT - 1);
+  } else {
+    let next = 1;
+    let inflight = 0;
+    function pump() {
+      while (next < FRAME_COUNT && inflight < 2) {
+        const i = next++;
+        inflight++;
+        const im = new Image();
+        im.onload = () => {
+          loaded.add(i);
+          inflight--;
+          if (Math.round(frame.current) === i) showFrame(i);
+          pump();
+        };
+        im.onerror = () => { inflight--; pump(); };
+        im.src = frameUrl(i);
+      }
+    }
+    if (document.readyState === "complete") pump();
+    else window.addEventListener("load", pump, { once: true });
+  }
 
   /* ------------------------------------------------ 3. product carousel */
   const PRODUCTS = [
@@ -184,7 +205,7 @@
     const outgoing = slots.current;
 
     outgoing.classList.remove("slot--current");
-    outgoing.classList.add(dir > 0 ? "is-leaving-right" : "is-leaving-left");
+    outgoing.classList.add(dir > 0 ? "is-leaving-left" : "is-leaving-right");
     incoming.classList.remove("slot--next", "slot--prev");
     incoming.classList.add("slot--current");
 
