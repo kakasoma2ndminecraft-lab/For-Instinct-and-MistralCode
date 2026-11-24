@@ -26,6 +26,33 @@
   window.addEventListener('resize', resize);
 
   function draw(i) {
+  const TOTAL = 96;
+  const FRAME_W = 1200, FRAME_H = 1200;
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const scrolly = document.getElementById('scrolly');
+  const loader = document.getElementById('loader');
+  const loaderFill = document.getElementById('loaderFill');
+  const loaderPct = document.getElementById('loaderPct');
+
+  const frames = new Array(TOTAL + 1); // 1-based
+  let loaded = 0;
+  let lastDrawn = -1;
+  let progress = 0;
+
+  // ---- canvas sizing (contain fit, DPR aware) ----
+  let vw = 0, vh = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    vw = canvas.clientWidth; vh = canvas.clientHeight;
+    canvas.width = Math.round(vw * dpr);
+    canvas.height = Math.round(vh * dpr);
+    lastDrawn = -1;
+    requestDraw();
+  }
+  window.addEventListener('resize', resize);
+
+  function draw(i) {
     const img = frames[i] || frames[nearestLoaded(i)];
     if (!img) return;
     lastDrawn = i;
@@ -136,8 +163,10 @@
   const fixedP = qs.has('p') ? parseFloat(qs.get('p')) : null;
   const fixedY = qs.has('y') ? parseFloat(qs.get('y')) : null;
 
+  updateCaps();
   resize();
   preload().then(() => {
+    updateCaps();
     if (fixedP !== null) { progress = fixedP; requestDraw(); updateCaps(); }
     if (fixedY !== null) {
       document.body.style.marginTop = (-fixedY) + 'px';
