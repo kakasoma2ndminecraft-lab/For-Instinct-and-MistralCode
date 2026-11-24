@@ -150,6 +150,7 @@
   const elRoast = document.getElementById("productRoast");
   const elNote = document.getElementById("productNote");
   const elCursor = document.getElementById("productCursor");
+  const elMeta = document.querySelector(".product-meta");
   const stageEl = document.querySelector(".carousel-stage");
   const pad2 = (n) => String(n).padStart(2, "0");
   const mod = (n) => (n + PRODUCTS.length) % PRODUCTS.length;
@@ -199,10 +200,22 @@
     if (busy) return;
     busy = true;
     index = mod(index + dir);
-    applyMeta();
 
     const incoming = dir > 0 ? slots.next : slots.prev;
     const outgoing = slots.current;
+    const far = dir > 0 ? slots.prev : slots.next;
+
+    /* the far slot teleports to the other side at repaint; hide that swap
+       behind a fade so it never reads as a jump */
+    far.style.transition = "opacity 0.3s ease";
+    far.style.opacity = "0";
+
+    /* crossfade the product text instead of swapping it mid-slide */
+    elMeta.classList.add("is-switching");
+    window.setTimeout(() => {
+      applyMeta();
+      elMeta.classList.remove("is-switching");
+    }, 200);
 
     outgoing.classList.remove("slot--current");
     outgoing.classList.add(dir > 0 ? "is-leaving-left" : "is-leaving-right");
@@ -222,9 +235,19 @@
         slots.current = incoming;
         slots.prev = oldNext;
       }
-      paintStatic();
+      freeze(true);
+      paintSlots();
+      far.style.transition = "none";
+      far.style.opacity = "0";
+      void stageEl.offsetWidth;
+      requestAnimationFrame(() => {
+        freeze(false);
+        far.style.transition = "opacity 0.55s ease 0.12s";
+        far.style.opacity = "";
+        window.setTimeout(() => { far.style.transition = ""; }, 750);
+      });
       busy = false;
-    }, 860);
+    }, 720);
   }
 
   paintStatic();
