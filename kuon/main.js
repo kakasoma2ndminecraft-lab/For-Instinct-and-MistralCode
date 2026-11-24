@@ -41,6 +41,21 @@
   let progress = 0;
 
   // ---- canvas sizing (contain fit, DPR aware) ----
+  const TOTAL = 96;
+  const FRAME_W = 1200, FRAME_H = 1200;
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const scrolly = document.getElementById('scrolly');
+  const loader = document.getElementById('loader');
+  const loaderFill = document.getElementById('loaderFill');
+  const loaderPct = document.getElementById('loaderPct');
+
+  const frames = new Array(TOTAL + 1); // 1-based
+  let loaded = 0;
+  let lastDrawn = -1;
+  let progress = 0;
+
+  // ---- canvas sizing (contain fit, DPR aware) ----
   let vw = 0, vh = 0, dpr = 1;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -116,7 +131,7 @@
     requestAnimationFrame(() => {
       const rect = scrolly.getBoundingClientRect();
       const total = rect.height - window.innerHeight;
-      if (fixedP === null) progress = Math.min(1, Math.max(0, -rect.top / total));
+      if (fixedP === null && total > 0) progress = Math.min(1, Math.max(0, -rect.top / total));
       requestDraw();
       updateCaps();
       ticking = false;
@@ -165,6 +180,7 @@
 
   updateCaps();
   resize();
+  window.addEventListener('load', () => { updateCaps(); requestDraw(); });
   preload().then(() => {
     updateCaps();
     if (fixedP !== null) { progress = fixedP; requestDraw(); updateCaps(); }
