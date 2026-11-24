@@ -82,20 +82,53 @@
   requestAnimationFrame(tick);
   update();
 
-  /* warm the browser cache with the rest of the sequence, two at a time */
+  /* ------------------------------------------------ 0. preloader */
+  /* the scrub is only smooth once the first frames are decoded, so hold the
+     stage on a branded loader until they arrive (with a hard time cap) */
+  const preloader = document.getElementById("preloader");
+  const preloaderFill = document.getElementById("preloaderFill");
+  const PRELOAD_READY = 20;
+  const PRELOADER_MIN = 700;
+  const preloaderStart = performance.now();
+  let preloaderDone = false;
+
+  function setPreloaderProgress(p) {
+    if (preloaderFill) preloaderFill.style.transform = `scaleY(${clamp01(p).toFixed(3)})`;
+  }
+
+  function finishPreloader() {
+    if (preloaderDone) return;
+    preloaderDone = true;
+    const wait = Math.max(0, PRELOADER_MIN - (performance.now() - preloaderStart));
+    window.setTimeout(() => {
+      document.documentElement.classList.remove("is-loading");
+      if (!preloader) return;
+      preloader.classList.add("is-done");
+      window.setTimeout(() => preloader.classList.add("is-hidden"), 1200);
+    }, wait);
+  }
+
+  setPreloaderProgress(0);
+
+  /* warm the browser cache with the rest of the sequence, four at a time */
   if (reduced) {
     frameEl.src = frameUrl(FRAME_COUNT - 1);
+    finishPreloader();
   } else {
     let next = 1;
     let inflight = 0;
+    let ready = 0;
     function pump() {
-      while (next < FRAME_COUNT && inflight < 2) {
+      while (next < FRAME_COUNT && inflight < 4) {
         const i = next++;
         inflight++;
         const im = new Image();
         im.onload = () => {
           loaded.add(i);
           inflight--;
+          ready++;
+          setPreloaderProgress(ready / PRELOAD_READY);
+          if (ready >= PRELOAD_READY) finishPreloader();
           if (Math.round(frame.current) === i) showFrame(i);
           pump();
         };
@@ -103,8 +136,8 @@
         im.src = frameUrl(i);
       }
     }
-    if (document.readyState === "complete") pump();
-    else window.addEventListener("load", pump, { once: true });
+    pump();
+    window.setTimeout(finishPreloader, 4500);
   }
 
   /* ------------------------------------------------ 3. product carousel */
@@ -256,6 +289,8 @@
   document.getElementById("nextBtn").addEventListener("click", () => go(1));
 
   document.addEventListener("keydown", (e) => {
+    /* the drawer is modal: arrows must not swap the product behind it */
+    if (document.documentElement.classList.contains("is-drawer-open")) return;
     if (e.key === "ArrowLeft") go(-1);
     if (e.key === "ArrowRight") go(1);
   });
@@ -268,6 +303,71 @@
     if (Math.abs(dx) > 48) go(dx < 0 ? 1 : -1);
     touchX = null;
   }, { passive: true });
+
+  /* ------------------------------------------------ 4. extraction drawer */
+  const drawer = document.getElementById("beanDrawer");
+  const scrim = document.getElementById("drawerScrim");
+  const selectBtn = document.getElementById("selectBean");
+  const drawerClose = document.getElementById("drawerClose");
+  const drawerImage = document.getElementById("drawerImage");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerName = document.getElementById("drawerName");
+  const drawerRoast = document.getElementById("drawerRoast");
+  const drawerRoastText = document.getElementById("drawerRoastText");
+  const drawerNote = document.getElementById("drawerNote");
+  const roastMeter = document.getElementById("roastMeter");
+  const ROAST_LEVEL = { "MEDIUM ROAST": 0.55, "DARK ROAST": 0.86 };
+  let drawerFocus = null;
+
+  function fillDrawer() {
+    const p = PRODUCTS[index];
+    drawerImage.src = p.src;
+    drawerImage.alt = `PICO ${p.origin}パッケージ`;
+    drawerTitle.textContent = p.origin;
+    drawerName.textContent = p.name;
+    drawerRoast.textContent = p.roast;
+    drawerRoastText.textContent = p.roast.replace(" ROAST", "");
+    drawerNote.innerHTML = p.note;
+    roastMeter.style.transform = `scaleX(${ROAST_LEVEL[p.roast] || 0.6})`;
+  }
+
+  function openDrawer() {
+    if (!drawer || !selectBtn) return;
+    fillDrawer();
+    drawerFocus = document.activeElement;
+    drawer.classList.add("is-open");
+    drawer.setAttribute("aria-hidden", "false");
+    scrim.classList.add("is-open");
+    document.documentElement.classList.add("is-drawer-open");
+    window.setTimeout(() => drawerClose.focus({ preventScroll: true }), 80);
+  }
+
+  function closeDrawer() {
+    if (!drawer || !drawer.classList.contains("is-open")) return;
+    drawer.classList.remove("is-open");
+    drawer.setAttribute("aria-hidden", "true");
+    scrim.classList.remove("is-open");
+    document.documentElement.classList.remove("is-drawer-open");
+    if (drawerFocus && drawerFocus.focus) drawerFocus.focus({ preventScroll: true });
+  }
+
+  if (drawer && selectBtn) {
+    selectBtn.addEventListener("click", openDrawer);
+    drawerClose.addEventListener("click", closeDrawer);
+    scrim.addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (!drawer.classList.contains("is-open")) return;
+      if (e.key === "Escape") { closeDrawer(); return; }
+      if (e.key !== "Tab") return;
+      /* keep keyboard focus inside the open dialog */
+      const focusables = drawer.querySelectorAll("button, [href], [tabindex]:not([tabindex='-1'])");
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
 
   /* ------------------------------------------------ 5. story reveal + parallax */
   const io = new IntersectionObserver(
