@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KUON 久遠 — 永遠を、刻む。</title>
+<meta name="description" content="KUON 久遠。372の部品がひとつの鼓動になる、機械式時計のコンセプトブランドサイト。">
+<link rel="icon" href="media/100-favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Serif+JP:wght@200;300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- loading -->
+<div id="loader">
+  <div class="loader-mark">久遠</div>
+  <div class="loader-bar"><span id="loaderFill"></span></div>
+  <div class="loader-pct" id="loaderPct">0%</div>
+</div>
+
+<!-- scroll-driven assembly -->
+<section id="scrolly">
+  <div class="sticky">
+    <canvas id="stage"></canvas>
+
+    <div class="cap cap-hero" data-from="0.00" data-to="0.085">
+      <div class="hero-kanji">久遠</div>
+      <h1 class="hero-logo">KUON</h1>
+      <p class="hero-tag">永遠を、刻む。</p>
+      <div class="scroll-hint"><span></span></div>
+    </div>
+
+    <div class="cap cap-side left" data-from="0.20" data-to="0.38">
+      <p class="cap-num">01</p>
+      <p class="cap-line">三百七十二の部品。</p>
+    </div>
+
+    <div class="cap cap-side right" data-from="0.44" data-to="0.58">
+      <p class="cap-num">02</p>
+      <p class="cap-line">それが、ひとつの鼓動になる。</p>
+    </div>
+
+    <div class="cap cap-side left" data-from="0.62" data-to="0.76">
+      <p class="cap-num">03</p>
+      <p class="cap-line">キャリバー KU-01。</p>
+    </div>
+
+    <div class="cap cap-final" data-from="0.90" data-to="1.06">
+      <p class="final-line">久遠、ここに完成。</p>
+    </div>
+  </div>
+</section>
+
+<!-- philosophy -->
+<section class="block philosophy reveal">
+  <p class="kicker">PHILOSOPHY</p>
+  <h2>時は、止まらない。<br>だからこそ、美しく。</h2>
+  <p class="body">久遠とは、尽きることのない時の流れのこと。<br>
+  私たちは電池に頼らない。ゼンマイと歯車、そして職人の指先だけで、<br class="sp-hide">
+  永遠の一片を腕の上に置く。<br>
+  機械が時を刻む音は、この世でいちばん静かな宣言だ。</p>
+</section>
+
+<!-- craft -->
+<section class="block split reveal">
+  <figure class="split-img"><img src="media/97-craft.jpg" alt="職人がムーブメントを組み立てる様子" loading="lazy"></figure>
+  <div class="split-txt">
+    <p class="kicker">CRAFTSMANSHIP</p>
+    <h2>匠の手、<br>機械の心。</h2>
+    <p class="body">ひとつのムーブメントが完成するまで、百二十時間。<br>
+    テンプの青いひげゼンマイは、一本ずつ手で巻かれる。<br>
+    早く作る方法はある。だが、美しく作る方法は、これしかない。</p>
+  </div>
+</section>
+
+<!-- calibre -->
+<section class="block calibre reveal">
+  <p class="kicker">CALIBRE KU-01</p>
+  <h2>仕様</h2>
+  <div class="spec-grid">
+    <div class="spec"><p class="spec-v">372</p><p class="spec-k">部品点数</p></div>
+    <div class="spec"><p class="spec-v">28,800</p><p class="spec-k">振動数 / vph</p></div>
+    <div class="spec"><p class="spec-v">72<span class="unit">h</span></p><p class="spec-k">パワーリザーブ</p></div>
+    <div class="spec"><p class="spec-v">41<span class="unit">mm</span></p><p class="spec-k">ケース径</p></div>
+    <div class="spec"><p class="spec-v">5<span class="unit">気圧</span></p><p class="spec-k">防水性能</p></div>
+    <div class="spec"><p class="spec-v">120<span class="unit">h</span></p><p class="spec-k">組立工数</p></div>
+  </div>
+</section>
+
+<!-- film -->
+<section class="block film reveal">
+  <p class="kicker">THE FILM</p>
+  <h2>組み上がる、四秒。</h2>
+  <div class="film-wrap">
+    <video src="media/98-kuon-assembly.mp4" autoplay muted loop playsinline></video>
+  </div>
+</section>
+
+<!-- wrist -->
+<section class="block split rev reveal">
+  <figure class="split-img"><img src="media/99-wrist.jpg" alt="KUONを着けた手首" loading="lazy"></figure>
+  <div class="split-txt">
+    <p class="kicker">ON THE WRIST</p>
+    <h2>あなたの時が、<br>久遠になる。</h2>
+    <p class="body">マットブラックの文字盤に、ローズゴールドの針。<br>
+    主張しすぎず、しかし忘れがたい。<br>
+    スーツにも、何も纏わない日にも。</p>
+  </div>
+</section>
+
+<!-- closing band -->
+<section class="band reveal">
+  <p class="band-line">永遠を、刻む。</p>
+  <p class="band-sub">KUON — time, carved for eternity.</p>
+</section>
+
+<footer>
+  <div class="foot-mark">久遠</div>
+  <p class="foot-logo">KUON</p>
+  <p class="foot-note">KUON はフィクションのコンセプトブランドです。<br>This is a fictional concept brand site.</p>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
