@@ -88,7 +88,7 @@
   const preloader = document.getElementById("preloader");
   const preloaderFill = document.getElementById("preloaderFill");
   const PRELOAD_READY = 20;
-  const PRELOADER_MIN = 700;
+  const PRELOADER_MIN = 1500;
   const preloaderStart = performance.now();
   let preloaderDone = false;
 
