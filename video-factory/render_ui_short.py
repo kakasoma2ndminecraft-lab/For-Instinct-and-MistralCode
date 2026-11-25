@@ -1,28 +1,26 @@
 #!/usr/bin/env python3
-"""Fake SaaS UI short: 1080x1920, 30fps, deterministic frame-by-frame render.
+"""Fake SaaS UI short: 1080x1920 deterministic renderer with fast preview loop.
 
-Reproduces the "AI app UI animation" short style:
-file cards stagger in, progress fills, statuses flip to done, result card pops.
+Modes:
+  full    : 1080x1920 @30fps MP4  (final render, one per approved edit)
+  preview : 270x480   @15fps draft MP4 + 12-frame contact sheet PNG
+            (what the screen will look like, seconds instead of minutes)
 """
+import argparse
 import math
 import subprocess
+import time
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 FFMPEG = str(ROOT / "bin" / "ffmpeg")
 FONT = str(ROOT / "bin" / "NotoSansJP-Bold.otf")
 
-W, H, FPS, DUR = 1080, 1920, 30, 7.0
-N = int(W * H * FPS * DUR / (W * H))  # frames = fps*dur
-N = int(FPS * DUR)
-
-BG_TOP = (11, 16, 38)
-BG_BOT = (30, 58, 138)
-CARD = (255, 255, 255, 255)
-TXT_DARK = (20, 27, 45)
-TXT_GRAY = (120, 132, 155)
+BASE_W, BASE_H, DUR = 1080, 1920, 7.0
+BG_TOP, BG_BOT = (11, 16, 38), (30, 58, 138)
+TXT_DARK, TXT_GRAY = (20, 27, 45), (120, 132, 155)
 
 CARDS = [
     {"name": "sales_deck.pdf", "icon": (236, 72, 153), "glyph": "PDF",
@@ -34,168 +32,182 @@ CARDS = [
 ]
 RESULT_AT = 4.3
 
+_fonts = {}
 
-def ease_out_cubic(t):
-    return 1 - (1 - t) ** 3
+
+def F(scale, size):
+    key = int(round(size * scale))
+    if key not in _fonts:
+        _fonts[key] = ImageFont.truetype(FONT, max(key, 8))
+    return _fonts[key]
 
 
 def ease_out_back(t, s=1.7):
     t -= 1
-    return 1 + (t * t * ((s + 1) * t + s))
-
-
-def mix(a, b, t):
-    return tuple(int(x + (y - x) * t) for x, y in zip(a, b))
+    return 1 + t * t * ((s + 1) * t + s)
 
 
 def lerp(a, b, t):
     return a + (b - a) * t
 
 
-def draw_background(t):
-    img = Image.new("RGB", (W, H))
-    px = img.load()
-    for y in range(0, H, 4):
-        row = mix(BG_TOP, BG_BOT, y / H)
-        for yy in range(y, min(y + 4, H)):
-            d = ImageDraw.Draw(img)
-            d.line([(0, yy), (W, yy)], fill=row)
+def mix(a, b, t):
+    return tuple(int(x + (y - x) * t) for x, y in zip(a, b))
+
+
+def background(scale):
+    w, h = int(BASE_W * scale), int(BASE_H * scale)
+    img = Image.new("RGB", (w, h))
+    d = ImageDraw.Draw(img)
+    for y in range(h):
+        d.line([(0, y), (w, y)], fill=mix(BG_TOP, BG_BOT, y / h))
     return img.convert("RGBA")
 
 
-def rounded_card(size, radius, fill):
-    w, h = size
+def rounded_card(w, h, scale, radius, fill):
+    w, h = int(w * scale), int(h * scale)
     m = Image.new("RGBA", (w + 8, h + 8), (0, 0, 0, 0))
     d = ImageDraw.Draw(m)
-    d.rounded_rectangle([4, 4, 4 + w, 4 + h], radius=radius, fill=fill)
+    d.rounded_rectangle([4, 4, 4 + w, 4 + h], radius=int(radius * scale),
+                        fill=fill)
     return m.filter(ImageFilter.GaussianBlur(0.5))
 
 
-def draw_frame(idx, bg_cache):
-    t = idx / FPS
-    img = bg_cache.copy().convert("RGBA")
+def frame(t, scale, bg):
+    W, H = bg.size
+    p = lambda v: int(v * scale)
+    img = bg.copy()
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
 
-    title_a = ease_out_cubic(min(max((t - 0.05) / 0.5, 0), 1))
-    title_y = int(lerp(330, 300, title_a))
-    d.text((W // 2, title_y), "AI File Analyzer", font=_font("Bold", 84),
-           anchor="mm", fill=(255, 255, 255, int(255 * title_a)))
-    if title_a > 0.99:
-        pass
-    sub_y = title_y + 90
-    d.text((W // 2, sub_y), "Vision-powered document intelligence",
-           font=_font("Bold", 36), anchor="mm",
-           fill=(160, 178, 210, int(230 * title_a)))
+    ta = min(max((t - 0.05) / 0.5, 0), 1)
+    ty = p(lerp(330, 300, ta))
+    d.text((W // 2, ty), "AI File Analyzer", font=F(scale, 84), anchor="mm",
+           fill=(255, 255, 255, int(255 * ta)))
+    d.text((W // 2, ty + p(90)), "Vision-powered document intelligence",
+           font=F(scale, 36), anchor="mm",
+           fill=(160, 178, 210, int(230 * ta)))
 
-    card_w, card_h = 840, 150
-    x0 = (W - card_w) // 2
     for i, c in enumerate(CARDS):
-        y_top = 560 + i * 210
-        a_in = ease_out_back(min(max((t - c["in"]) / 0.55, 0), 1))
-        if a_in <= 0:
+        y_top = p(560 + i * 210)
+        ain = ease_out_back(min(max((t - c["in"]) / 0.55, 0), 1))
+        if ain <= 0:
             continue
-        dy = int(lerp(70, 0, a_in))
+        dy = int(lerp(p(70), 0, ain))
         ca = int(255 * min(max((t - c["in"]) / 0.35, 0), 1))
-        layer = rounded_card((card_w, card_h), 28, (255, 255, 255, ca))
-        cx, cy = x0 - 4, y_top + dy - 4
-        ov.alpha_composite(layer, (cx, cy))
+        ov.alpha_composite(rounded_card(840, 150, scale, 28, (255, 255, 255, ca)),
+                           ((W - int(840 * scale)) // 2 - 4, y_top + dy - 4))
         d = ImageDraw.Draw(ov)
-        ix, iy = cx + 34, cy + 33
-        iw = 84
-        d.rounded_rectangle([ix, iy, ix + iw, iy + iw], radius=18,
+        ix, iy = (W - p(840)) // 2 + p(34), y_top + dy + p(33)
+        iw = p(84)
+        d.rounded_rectangle([ix, iy, ix + iw, iy + iw], radius=p(18),
                             fill=c["icon"] + (ca,))
-        d.text((ix + iw / 2, iy + iw / 2), c["glyph"], font=_font("Bold", 26),
+        d.text((ix + iw / 2, iy + iw / 2), c["glyph"], font=F(scale, 26),
                anchor="mm", fill=(255, 255, 255, ca))
-        tx = ix + iw + 30
-        d.text((tx, iy + 28), c["name"], font=_font("Bold", 40),
-               anchor="lm", fill=TXT_DARK + (ca,))
-
-        done_t = t >= c["done"]
-        if done_t:
-            status = "Done"
-            col = (34, 197, 94)
+        tx = ix + iw + p(30)
+        d.text((tx, iy + p(28)), c["name"], font=F(scale, 40), anchor="lm",
+               fill=TXT_DARK + (ca,))
+        if t >= c["done"]:
+            status, col = "Done", (34, 197, 94)
         else:
-            dots = "." * (1 + int(t * 3) % 3)
-            status = f"Analyzing{dots}"
-            col = TXT_GRAY
-        d.text((tx, iy + 82), status, font=_font("Bold", 30), anchor="lm",
+            status, col = f"Analyzing{'.' * (1 + int(t * 3) % 3)}", TXT_GRAY
+        d.text((tx, iy + p(82)), status, font=F(scale, 30), anchor="lm",
                fill=col + (ca,))
-
-        bar_y = iy + iw + 14
+        bar = iy + iw + p(14)
         prog = min(max((t - c["in"] - 0.3) / (c["done"] - c["in"] - 0.3), 0), 1)
-        if done_t:
-            prog = 1.0
-        d.rounded_rectangle([tx, bar_y, tx + 560, bar_y + 10], radius=5,
+        d.rounded_rectangle([tx, bar, tx + p(560), bar + p(10)], radius=p(5),
                             fill=(228, 233, 242, ca))
         if prog > 0:
-            d.rounded_rectangle([tx, bar_y, tx + int(560 * prog), bar_y + 10],
-                                radius=5, fill=c["icon"] + (ca,))
+            d.rounded_rectangle([tx, bar, tx + int(p(560) * prog), bar + p(10)],
+                                radius=p(5), fill=c["icon"] + (ca,))
 
     ra = ease_out_back(min(max((t - RESULT_AT) / 0.6, 0), 1))
     if ra > 0:
-        rh = 300
-        ry = int(lerp(620, 560, ra))
-        layer = rounded_card((840, rh), 32, (255, 255, 255, int(255 * ra)))
-        ov.alpha_composite(layer, ((W - 840) // 2, ry))
+        rh = p(300)
+        ry = int(lerp(p(620), p(560), ra))
+        ov.alpha_composite(rounded_card(840, 300, scale, 32,
+                                        (255, 255, 255, int(255 * ra))),
+                           ((W - p(840)) // 2, ry))
         d = ImageDraw.Draw(ov)
-        d.text((W // 2, ry + 70), "Summary Ready", font=_font("Bold", 52),
+        d.text((W // 2, ry + p(70)), "Summary Ready", font=F(scale, 52),
                anchor="mm", fill=TXT_DARK + (int(255 * ra),))
-        rows = [("3 files processed", "0.9s"), ("Insights extracted", "12"),
-                ("Confidence", "97.4%")]
-        for j, (k, v) in enumerate(rows):
-            yy = ry + 150 + j * 46
-            d.text((W // 2 - 350, yy), k, font=_font("Bold", 30), anchor="lm",
+        for j, (k, v) in enumerate([("3 files processed", "0.9s"),
+                                    ("Insights extracted", "12"),
+                                    ("Confidence", "97.4%")]):
+            yy = ry + p(150) + p(46) * j
+            d.text((W // 2 - p(350), yy), k, font=F(scale, 30), anchor="lm",
                    fill=TXT_GRAY + (int(255 * ra),))
-            d.text((W // 2 + 350, yy), v, font=_font("Bold", 30), anchor="rm",
+            d.text((W // 2 + p(350), yy), v, font=F(scale, 30), anchor="rm",
                    fill=TXT_DARK + (int(255 * ra),))
-
-    if t > 0.8:
-        sh = (math.sin(t * 2.2) + 1) / 2
-        d = ImageDraw.Draw(ov)
-        d.ellipse([W // 2 - 9, H - 250 - 9, W // 2 + 9, H - 250 + 9],
-                  fill=(120, 200, 255, int(40 + 60 * sh)))
 
     return Image.alpha_composite(img, ov).convert("RGB")
 
 
-_fonts = {}
-
-
-def _font(weight, size):
-    from PIL import ImageFont
-    key = size
-    if key not in _fonts:
-        _fonts[key] = ImageFont.truetype(FONT, size)
-    return _fonts[key]
-
-
-def main():
-    out_dir = ROOT / "tmp" / "frames"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    bg = draw_background(0)
-    paths = []
-    for i in range(N):
-        fr = draw_frame(i, bg)
-        p = out_dir / f"f{i:04d}.png"
-        fr.save(p)
-        paths.append(p)
-    out = str(ROOT / "out" / "ui_demo.mp4")
+def encode(png_dir, fps, out, crf=23, scale=1.0):
     Path(out).parent.mkdir(exist_ok=True)
+    extra = []
+    if scale != 1.0:
+        w, h = int(BASE_W * scale) // 2 * 2, int(BASE_H * scale) // 2 * 2
+        extra = ["-vf", f"scale={w}:{h}"]
     subprocess.run(
-        [FFMPEG, "-y", "-framerate", str(FPS), "-i", str(out_dir / "f%04d.png"),
-         "-c:v", "libx264", "-preset", "medium", "-crf", "22",
-         "-pix_fmt", "yuv420p", "-movflags", "faststart", out],
+        [FFMPEG, "-y", "-framerate", str(fps), "-i", str(png_dir / "f%04d.png"),
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf),
+         "-pix_fmt", "yuv420p", "-movflags", "faststart", *extra, out],
         check=True, capture_output=True, text=True)
-    for p in paths:
-        p.unlink()
-    out_dir.rmdir()
-    probe = subprocess.run([FFMPEG, "-hide_banner", "-i", out],
-                           capture_output=True, text=True)
-    for line in probe.stderr.splitlines():
-        if "Duration" in line or "Video" in line:
-            print(line.strip())
+
+
+def run_full(out):
+    t0 = time.time()
+    scale, fps = 1.0, 30
+    n = int(fps * DUR)
+    d = ROOT / "tmp" / "frames_full"
+    d.mkdir(parents=True, exist_ok=True)
+    bg = background(scale)
+    for i in range(n):
+        frame(i / fps, scale, bg).save(d / f"f{i:04d}.png")
+    encode(d, fps, out, crf=22)
+    for f in d.glob("*.png"):
+        f.unlink()
+    d.rmdir()
+    print(f"full  : {n} frames @1080x1920 -> {out}  ({time.time()-t0:.1f}s)")
+
+
+def run_preview(out, sheet, fps=15, scale=0.25, n_sheet=12):
+    t0 = time.time()
+    n = int(fps * DUR)
+    d = ROOT / "tmp" / "frames_draft"
+    d.mkdir(parents=True, exist_ok=True)
+    bg = background(scale)
+    for i in range(n):
+        frame(i / fps, scale, bg).save(d / f"f{i:04d}.png")
+    encode(d, fps, out, crf=30, scale=scale)
+    for f in d.glob("*.png"):
+        f.unlink()
+    d.rmdir()
+
+    tile_w, tile_h = int(BASE_W * scale), int(BASE_H * scale)
+    cols = 4
+    rows = math.ceil(n_sheet / cols)
+    grid = Image.new("RGB", (tile_w * cols, tile_h * rows), (0, 0, 0))
+    bg = background(scale)
+    for j in range(n_sheet):
+        t = DUR * j / (n_sheet - 1)
+        grid.paste(frame(t, scale, bg),
+                   ((j % cols) * tile_w, (j // cols) * tile_h))
+    sheet.parent.mkdir(exist_ok=True)
+    grid.save(sheet)
+    print(f"preview: draft mp4 -> {out}\n         contact sheet ({n_sheet} frames) -> {sheet}  "
+          f"({time.time()-t0:.1f}s)")
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--preview", action="store_true")
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--sheet", default=None)
+    a = ap.parse_args()
+    if a.preview:
+        run_preview(a.out or str(ROOT / "out" / "ui_demo_draft.mp4"),
+                    Path(a.sheet or ROOT / "tmp" / "ui_sheet_draft.png"))
+    else:
+        run_full(a.out or str(ROOT / "out" / "ui_demo.mp4"))
