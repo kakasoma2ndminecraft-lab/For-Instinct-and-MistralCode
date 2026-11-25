@@ -1,0 +1,18 @@
+{
+  "canvas": { "width": 1080, "height": 1920, "fps": 30 },
+  "scenes": [
+    {
+      "id": "s1",
+      "duration": 5.0,
+      "background": "gradient",
+      "colors": ["#0f172a", "#7c3aed"],
+      "zoom": { "start": 1.0, "end": 1.12 },
+      "title": "Vibe Code \u52d5\u753b\u30d5\u30a1\u30af\u30c8\u30ea\u691c\u8a3c",
+      "captions": [
+        { "text": "JSON\u30bf\u30a4\u30e0\u30e9\u30a4\u30f3\u3092\u66f8\u304f", "start": 0.2, "end": 2.4 },
+        { "text": "ffmpeg\u304cMP4\u3092\u30ec\u30f3\u30c0\u30ea\u30f3\u30b0", "start": 2.4, "end": 4.8 }
+      ]
+    }
+  ],
+  "audio": { "bgm": null, "bgm_gain_db": -18 }
+}

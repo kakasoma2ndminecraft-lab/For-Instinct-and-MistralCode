@@ -14,9 +14,36 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-ROOT = Path(__file__).resolve().parents[1]
-FFMPEG = str(ROOT / "bin" / "ffmpeg")
-FONT = str(ROOT / "bin" / "NotoSansJP-Bold.otf")
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT = SCRIPT_DIR  # skill dir; outputs go to cwd/out and cwd/tmp
+
+OUT_DIR = Path.cwd() / "out"
+TMP_DIR = Path.cwd() / "tmp"
+
+
+def _bootstrap_ffmpeg():
+    local = SCRIPT_DIR / "bin" / "ffmpeg"
+    if not local.exists():
+        import shutil, imageio_ffmpeg
+        local.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), local)
+        local.chmod(0o755)
+    return str(local)
+
+
+def _bootstrap_font():
+    local = SCRIPT_DIR / "bin" / "NotoSansJP-Bold.otf"
+    if not local.exists():
+        import urllib.request
+        local.parent.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(
+            "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/"
+            "Japanese/NotoSansCJKjp-Bold.otf", local)
+    return str(local)
+
+
+FFMPEG = _bootstrap_ffmpeg()
+FONT = _bootstrap_font()
 
 BASE_W, BASE_H, DUR = 1080, 1920, 7.0
 BG_TOP, BG_BOT = (11, 16, 38), (30, 58, 138)
@@ -160,7 +187,7 @@ def run_full(out):
     t0 = time.time()
     scale, fps = 1.0, 30
     n = int(fps * DUR)
-    d = ROOT / "tmp" / "frames_full"
+    d = TMP_DIR / "frames_full"
     d.mkdir(parents=True, exist_ok=True)
     bg = background(scale)
     for i in range(n):
@@ -175,7 +202,7 @@ def run_full(out):
 def run_preview(out, sheet, fps=15, scale=0.25, n_sheet=12):
     t0 = time.time()
     n = int(fps * DUR)
-    d = ROOT / "tmp" / "frames_draft"
+    d = TMP_DIR / "frames_draft"
     d.mkdir(parents=True, exist_ok=True)
     bg = background(scale)
     for i in range(n):
@@ -207,7 +234,7 @@ if __name__ == "__main__":
     ap.add_argument("--sheet", default=None)
     a = ap.parse_args()
     if a.preview:
-        run_preview(a.out or str(ROOT / "out" / "ui_demo_draft.mp4"),
-                    Path(a.sheet or ROOT / "tmp" / "ui_sheet_draft.png"))
+        run_preview(a.out or str(OUT_DIR / "ui_demo_draft.mp4"),
+                    Path(a.sheet or TMP_DIR / "ui_sheet_draft.png"))
     else:
-        run_full(a.out or str(ROOT / "out" / "ui_demo.mp4"))
+        run_full(a.out or str(OUT_DIR / "ui_demo.mp4"))

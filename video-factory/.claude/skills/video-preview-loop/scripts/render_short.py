@@ -9,9 +9,35 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-FFMPEG = str(ROOT / "bin" / "ffmpeg")
-FONT = str(ROOT / "bin" / "NotoSansJP-Bold.otf")
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT = SCRIPT_DIR  # skill dir; outputs go to cwd/out and cwd/tmp
+
+
+
+
+def _bootstrap_ffmpeg():
+    local = SCRIPT_DIR / "bin" / "ffmpeg"
+    if not local.exists():
+        import shutil, imageio_ffmpeg
+        local.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), local)
+        local.chmod(0o755)
+    return str(local)
+
+
+def _bootstrap_font():
+    local = SCRIPT_DIR / "bin" / "NotoSansJP-Bold.otf"
+    if not local.exists():
+        import urllib.request
+        local.parent.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(
+            "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/"
+            "Japanese/NotoSansCJKjp-Bold.otf", local)
+    return str(local)
+
+
+FFMPEG = _bootstrap_ffmpeg()
+FONT = _bootstrap_font()
 
 
 def esc(text: str) -> str:
@@ -72,10 +98,6 @@ def render(timeline_path: str, out_path: str) -> None:
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
 
-    probe = subprocess.run(
-        [FFMPEG if False else str(ROOT / "bin" / "ffmpeg").replace("ffmpeg", "ffmpeg")],
-        capture_output=True,
-    )
     info = subprocess.run(
         [FFMPEG, "-hide_banner", "-i", out_path], capture_output=True, text=True
     )
