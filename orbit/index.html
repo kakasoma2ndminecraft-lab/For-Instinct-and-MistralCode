@@ -5,168 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ORBIT | AIチームを、ひとつの場所に。</title>
   <meta name="description" content="ORBITは、目標を入力するだけでAIチームメイトが役割を分担し、チャットで協力して成果物を届けるワークスペースです。">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%230b0b0f' stroke-width='3'/%3E%3Ccircle cx='16' cy='4' r='4.5' fill='%230666eb'/%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("orbit_theme");
+        if (t !== "dark" && t !== "light") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="logo" href="./">
-        <span class="logo-mark" aria-hidden="true"></span>
-        ORBIT
-      </a>
-      <nav class="global-nav" aria-label="メインナビゲーション">
-        <a href="#how">使い方</a>
-        <a href="#features">特徴</a>
-        <a class="btn btn-primary btn-sm" href="./app/">アプリを開く</a>
+  <section class="lp-hero">
+    <div class="container">
+      <nav class="lp-nav" aria-label="メインナビゲーション">
+        <a class="logo" href="./">
+          <span class="logo-mark" aria-hidden="true"></span>
+          ORBIT
+        </a>
+        <div class="lp-nav-links">
+          <a href="#how">使い方</a>
+          <button class="theme-btn" id="lpThemeToggle" type="button">
+            <span id="lpThemeIcon" aria-hidden="true">☾</span>
+          </button>
+          <a class="btn btn-primary btn-sm" href="app/">アプリを開く</a>
+        </div>
       </nav>
-    </div>
-  </header>
 
-  <main>
-
-    <section class="hero">
-      <div class="container hero-inner">
+      <div class="hero-inner">
         <span class="hero-badge">AIチームメイト・ワークスペース</span>
         <h1>AIチームを、<br>ひとつの場所に。</h1>
         <p class="lead">目標を入力するだけ。AIチームメイトが役割を分担し、チャットで協力して成果物を届けます。</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="./app/">無料で試す</a>
-          <a class="btn btn-ghost" href="#how">使い方を見る</a>
-        </div>
-        <p class="hero-note">登録・インストール不要。ブラウザだけで動きます。</p>
+        <form class="lp-composer" id="lpForm" style="margin-top: 44px;">
+          <input type="text" id="lpGoal" placeholder="何を成し遂げたい?" autocomplete="off">
+          <button class="lp-send" type="submit" aria-label="アプリへ進む">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </form>
+        <p class="hero-note">登録・インストール不要。入力した内容はアプリに引き継がれます。</p>
       </div>
+    </div>
+  </section>
 
-      <div class="container">
-        <div class="mock reveal" aria-hidden="true">
-          <div class="mock-bar">
-            <span class="mock-dot"></span>
-            <span class="mock-dot"></span>
-            <span class="mock-dot"></span>
-            <span class="mock-title">ORBIT ワークスペース</span>
-          </div>
-          <div class="mock-body">
-            <div class="mock-side">
-              <div class="mock-agent">
-                <div class="mock-avatar is-blue">ミ</div>
-                <div class="mock-agent-main">
-                  <div class="mock-agent-name">ミオ</div>
-                  <div class="mock-agent-role">プランナー · 作業中</div>
-                </div>
-              </div>
-              <div class="mock-agent">
-                <div class="mock-avatar">ソ</div>
-                <div class="mock-agent-main">
-                  <div class="mock-agent-name">ソラ</div>
-                  <div class="mock-agent-role">リサーチャー · 待機</div>
-                </div>
-              </div>
-              <div class="mock-agent">
-                <div class="mock-avatar">ユ</div>
-                <div class="mock-agent-main">
-                  <div class="mock-agent-name">ユイ</div>
-                  <div class="mock-agent-role">ライター · 完了</div>
-                </div>
-              </div>
-            </div>
-            <div class="mock-chat">
-              <div class="mock-msg is-right">
-                <div class="mock-avatar">あなた</div>
-                <div class="mock-bubble">新規カフェのオープンキャンペーンを企画して</div>
-              </div>
-              <div class="mock-msg">
-                <div class="mock-avatar is-blue">ソ</div>
-                <div class="mock-bubble">
-                  集客につながる季節の企画を3案まとめました。
-                  <div class="mock-progress"><span style="width: 72%"></span></div>
-                </div>
-              </div>
-              <div class="mock-msg">
-                <div class="mock-avatar is-blue">ユ</div>
-                <div class="mock-bubble">キャッチコピーと告知文の下書きが完了しました。</div>
-              </div>
-            </div>
-          </div>
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">使い方</span>
+        <h2>3ステップで、チームが動く。</h2>
+      </div>
+      <div class="step-cards">
+        <div class="step-card reveal">
+          <span class="step-num">1</span>
+          <h3>目標を入力</h3>
+          <p>やりたいことを1行入力するだけ。ORBITが目標を分析し、必要な役割とタスクに分解します。</p>
+        </div>
+        <div class="step-card reveal">
+          <span class="step-num">2</span>
+          <h3>AIチームが協働</h3>
+          <p>プランナー、リサーチャー、ライター、レビュアー、まとめ役が役割を分担。チャットで協力しながら作業を進め、経過はすべてタイムラインに残ります。</p>
+        </div>
+        <div class="step-card reveal">
+          <span class="step-num">3</span>
+          <h3>承認して完了</h3>
+          <p>まとめ役が成果物に仕上げて提示。内容を確認して承認すれば、Markdownファイルとしてダウンロードできます。</p>
         </div>
       </div>
-    </section>
-
-    <section class="section" id="how">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow">使い方</span>
-          <h2>3ステップで、チームが動く。</h2>
-        </div>
-        <div class="steps">
-          <div class="step-card reveal">
-            <span class="step-num">1</span>
-            <h3>目標を入力</h3>
-            <p>やりたいことを1行入力するだけ。ORBITが目標を分析し、必要な役割とタスクに分解します。</p>
-          </div>
-          <div class="step-card reveal">
-            <span class="step-num">2</span>
-            <h3>AIチームが協働</h3>
-            <p>プランナー、リサーチャー、ライター、レビュアーが役割を分担。チャットで協力しながら作業を進め、経過はすべてタイムラインに残ります。</p>
-          </div>
-          <div class="step-card reveal">
-            <span class="step-num">3</span>
-            <h3>承認して完了</h3>
-            <p>まとめ役が成果物に仕上げて提示。内容を確認して承認すれば、Markdownファイルとしてダウンロードできます。</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="features">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow">特徴</span>
-          <h2>仕事は、チームで回る。</h2>
-        </div>
-        <div class="feature-grid">
-          <div class="card reveal">
-            <div class="card-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.5c2 .8 3 2.6 3 5.5"/></svg>
-            </div>
-            <h3>役割分担するAIエージェント</h3>
-            <p>企画、調査、執筆、レビュー。目標に合わせて最適な役割のエージェントが揃い、それぞれの得意分野を担当します。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.3A8.5 8.5 0 1 1 21 12z"/></svg>
-            </div>
-            <h3>チャットで進捗が見える</h3>
-            <p>誰が何をしていて、何を考えたのか。エージェントの発言がタイムラインに並ぶので、進捗も判断の理由もひと目でわかります。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12.5l3.5 3.5L17 9.5"/><circle cx="12" cy="12" r="9"/></svg>
-            </div>
-            <h3>最後は人間が承認</h3>
-            <p>成果物を出すのはAI、決めるのはあなたです。承認してはじめて仕事が完了し、そのままファイルとして持ち出せます。</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow">さあ、はじめよう</span>
-          <h2>目標を1行、渡してみる。</h2>
-          <p class="lead">APIキーがなくても、デモモードで一連の流れをそのまま体験できます。</p>
-        </div>
-        <div class="hero-actions">
-          <a class="btn btn-dark" href="./app/">アプリを開く</a>
-        </div>
-      </div>
-    </section>
-
-  </main>
+    </div>
+  </section>
 
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -181,6 +93,35 @@
 
   <script>
     (function () {
+      var themeKey = "orbit_theme";
+      function currentTheme() {
+        try {
+          var stored = localStorage.getItem(themeKey);
+          if (stored === "dark" || stored === "light") {
+            return stored;
+          }
+        } catch (e) {}
+        return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("lpThemeIcon").textContent = theme === "dark" ? "☀" : "☾";
+      }
+      applyTheme(currentTheme());
+      document.getElementById("lpThemeToggle").addEventListener("click", function () {
+        var next = currentTheme() === "dark" ? "light" : "dark";
+        try {
+          localStorage.setItem(themeKey, next);
+        } catch (e) {}
+        applyTheme(next);
+      });
+
+      document.getElementById("lpForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var value = document.getElementById("lpGoal").value.trim();
+        window.location.href = value ? "app/?goal=" + encodeURIComponent(value) : "app/";
+      });
+
       var targets = document.querySelectorAll(".reveal");
       if (!("IntersectionObserver" in window)) {
         targets.forEach(function (el) { el.classList.add("is-visible"); });

@@ -5,72 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ORBIT ワークスペース | AIチームで成果物をつくる</title>
   <meta name="description" content="目標を入力すると、AIチームメイトが役割を分担して協働し、成果物を届けるORBITのワークスペースです。">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%230b0b0f' stroke-width='3'/%3E%3Ccircle cx='16' cy='4' r='4.5' fill='%230666eb'/%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("orbit_theme");
+        if (t === "dark" || t === "light") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
-<body class="app-page">
+<body>
 
-  <header class="site-header">
-    <div class="app-main app-header-inner">
-      <div class="header-inner">
-        <div class="header-left">
-          <a class="back-link" href="../">← LPに戻る</a>
-          <a class="logo" href="../">
-            <span class="logo-mark" aria-hidden="true"></span>
-            ORBIT
-          </a>
+  <div class="app-layout">
+
+    <aside class="sidebar" id="sidebar" aria-label="サイドバー">
+      <div class="sidebar-head">
+        <a class="logo" href="../">
+          <span class="logo-mark" aria-hidden="true"></span>
+          ORBIT
+        </a>
+      </div>
+
+      <button class="btn-new" id="newTeamBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        新しいチーム
+      </button>
+
+      <div class="side-label">履歴</div>
+      <div class="session-scroll" id="sessionScroll">
+        <div id="sessionList">
+          <p class="session-empty" id="sessionEmpty">まだ履歴がありません。</p>
         </div>
-        <div class="header-right">
+      </div>
+
+      <div class="sidebar-foot">
+        <button class="side-btn" id="themeToggle" type="button">
+          <span id="themeIcon" aria-hidden="true">☾</span>
+          <span id="themeLabel">テーマ切替</span>
+        </button>
+        <button class="side-btn" id="openSettings" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          APIキー設定
+        </button>
+        <a class="back-link" href="../">← LPに戻る</a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main">
+      <div class="topbar">
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="メニューを開く">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="chat-title" id="chatTitle">ORBIT</div>
+        <div class="mode-indicators">
           <span class="demo-badge" id="demoBadge">デモモード</span>
           <span class="api-chip" id="apiChip" hidden>API接続</span>
-          <button class="btn btn-ghost btn-sm" id="openSettings" type="button">APIキー設定</button>
         </div>
       </div>
-    </div>
-  </header>
 
-  <main class="app-main">
+      <div class="chat-scroll" id="chatScroll">
+        <div class="empty-state" id="emptyState">
+          <h1 class="empty-heading">何を成し遂げたい?</h1>
+          <div class="compose-center" id="composeSlotCenter">
+            <div id="composerBox">
+              <div class="composer">
+                <textarea class="goal-input" id="goalInput" rows="1" placeholder="例: 新規カフェのオープンキャンペーンを企画して"></textarea>
+                <button class="send-btn" id="runButton" type="button" aria-label="送信" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                </button>
+              </div>
+              <p class="composer-hint">Enterで送信 · Shift+Enterで改行 · APIキーがなくてもデモモードで体験できます</p>
+            </div>
+          </div>
+          <div class="suggestion-row">
+            <button class="suggestion-pill" type="button" data-goal="新商品のLPを作りたい">新商品のLPを作りたい</button>
+            <button class="suggestion-pill" type="button" data-goal="来週のプレゼン資料の構成">来週のプレゼン資料の構成</button>
+            <button class="suggestion-pill" type="button" data-goal="競合3社を調べて比較">競合3社を調べて比較</button>
+          </div>
+        </div>
 
-    <section class="goal-panel">
-      <label class="goal-label" for="goalInput">チームの目標</label>
-      <textarea class="goal-textarea" id="goalInput" placeholder="例: 新規カフェのオープンキャンペーンを企画して"></textarea>
-      <div class="goal-actions">
-        <p class="goal-hint" id="goalHint">目標を分解して、AIチームメイトが順番に作業します。</p>
-        <button class="btn btn-primary" id="runButton" type="button">チームを動かす</button>
+        <div class="chat-col" id="conversation" hidden>
+          <div class="timeline" id="timeline"></div>
+        </div>
       </div>
-    </section>
 
-    <div id="errorArea"></div>
+      <div class="error-area" id="errorArea"></div>
 
-    <div class="workspace-grid">
-      <aside class="panel" aria-label="エージェント一覧">
-        <div class="panel-title">
-          チームメイト
-          <span class="panel-count" id="agentCount">0人</span>
-        </div>
-        <div id="agentList">
-          <p class="empty">目標を入力すると、<br>ここにチームメイトが揃います。</p>
-        </div>
-        <p class="side-note">
-          APIキーはブラウザの localStorage にのみ保存され、<strong>https://api.mistral.ai 以外には送信されません</strong>。キーは <a href="https://console.mistral.ai/" target="_blank" rel="noopener noreferrer">Mistralコンソール</a> で取得できます。
-        </p>
-      </aside>
+      <div class="compose-dock" id="composeSlotDock"></div>
+    </main>
 
-      <section class="panel chat-panel" aria-label="チャットタイムライン">
-        <div class="panel-title">
-          タイムライン
-          <span class="panel-count" id="runState"></span>
-        </div>
-        <div class="timeline" id="timeline">
-          <p class="timeline-empty">目標を入力して「チームを動かす」を押すと、<br>ここに会話が流れていきます。</p>
-        </div>
-      </section>
-    </div>
-
-  </main>
+  </div>
 
   <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal">
@@ -80,7 +110,7 @@
       <p class="key-status" id="keyStatus"></p>
       <div class="modal-note">
         <span aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         </span>
         <span>入力したキーは<strong>このブラウザの localStorage にのみ保存</strong>され、<strong>https://api.mistral.ai 以外のどこにも送信されません</strong>。キーがなければ、デモモードのまますべての流れを体験できます。</span>
       </div>
