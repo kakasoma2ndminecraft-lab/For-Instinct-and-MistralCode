@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORBIT ワークスペース | AIチームで成果物をつくる</title>
+  <meta name="description" content="目標を入力すると、AIチームメイトが役割を分担して協働し、成果物を届けるORBITのワークスペースです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%230b0b0f' stroke-width='3'/%3E%3Ccircle cx='16' cy='4' r='4.5' fill='%230666eb'/%3E%3C/svg%3E">
+</head>
+<body class="app-page">
+
+  <header class="site-header">
+    <div class="app-main app-header-inner">
+      <div class="header-inner">
+        <div class="header-left">
+          <a class="back-link" href="../">← LPに戻る</a>
+          <a class="logo" href="../">
+            <span class="logo-mark" aria-hidden="true"></span>
+            ORBIT
+          </a>
+        </div>
+        <div class="header-right">
+          <span class="demo-badge" id="demoBadge">デモモード</span>
+          <span class="api-chip" id="apiChip" hidden>API接続</span>
+          <button class="btn btn-ghost btn-sm" id="openSettings" type="button">APIキー設定</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <section class="goal-panel">
+      <label class="goal-label" for="goalInput">チームの目標</label>
+      <textarea class="goal-textarea" id="goalInput" placeholder="例: 新規カフェのオープンキャンペーンを企画して"></textarea>
+      <div class="goal-actions">
+        <p class="goal-hint" id="goalHint">目標を分解して、AIチームメイトが順番に作業します。</p>
+        <button class="btn btn-primary" id="runButton" type="button">チームを動かす</button>
+      </div>
+    </section>
+
+    <div id="errorArea"></div>
+
+    <div class="workspace-grid">
+      <aside class="panel" aria-label="エージェント一覧">
+        <div class="panel-title">
+          チームメイト
+          <span class="panel-count" id="agentCount">0人</span>
+        </div>
+        <div id="agentList">
+          <p class="empty">目標を入力すると、<br>ここにチームメイトが揃います。</p>
+        </div>
+        <p class="side-note">
+          APIキーはブラウザの localStorage にのみ保存され、<strong>https://api.mistral.ai 以外には送信されません</strong>。キーは <a href="https://console.mistral.ai/" target="_blank" rel="noopener noreferrer">Mistralコンソール</a> で取得できます。
+        </p>
+      </aside>
+
+      <section class="panel chat-panel" aria-label="チャットタイムライン">
+        <div class="panel-title">
+          タイムライン
+          <span class="panel-count" id="runState"></span>
+        </div>
+        <div class="timeline" id="timeline">
+          <p class="timeline-empty">目標を入力して「チームを動かす」を押すと、<br>ここに会話が流れていきます。</p>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal">
+      <h2 class="modal-title" id="settingsTitle">APIキー設定</h2>
+      <p class="modal-desc">MistralのAPIキーを設定すると、実際のAIチームが動きます。キーは <a href="https://console.mistral.ai/" target="_blank" rel="noopener noreferrer">https://console.mistral.ai/</a> で取得できます。</p>
+      <input class="key-input" id="apiKeyInput" type="password" placeholder="Mistral APIキーを貼り付け" autocomplete="off" spellcheck="false">
+      <p class="key-status" id="keyStatus"></p>
+      <div class="modal-note">
+        <span aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+        <span>入力したキーは<strong>このブラウザの localStorage にのみ保存</strong>され、<strong>https://api.mistral.ai 以外のどこにも送信されません</strong>。キーがなければ、デモモードのまますべての流れを体験できます。</span>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="clearKey" type="button">キーを削除</button>
+        <button class="btn btn-primary" id="saveKey" type="button">保存して閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/app.js"></script>
+
+</body>
+</html>
